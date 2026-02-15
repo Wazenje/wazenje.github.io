@@ -147,7 +147,7 @@ function draw() {
     ctx.fillStyle = "#0b1220";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // optioneel grid lijnen
+    // grid lijnen
     ctx.strokeStyle = "#1e293b";
     for (let i = 0; i <= gridSize; i++) {
         ctx.beginPath();
@@ -160,15 +160,18 @@ function draw() {
         ctx.stroke();
     }
 
-    // Snake
+    // Snake tekenen
     ctx.fillStyle = "#22c55e";
     snake.forEach(segment => {
         ctx.fillRect(segment.x, segment.y, box, box);
     });
 
-    // Food
+    // Food tekenen
     ctx.fillStyle = "#ef4444";
     ctx.fillRect(food.x, food.y, box, box);
+
+    // ❗ NIET bewegen als er nog geen richting is
+    if (!direction) return;
 
     let headX = snake[0].x;
     let headY = snake[0].y;
@@ -178,10 +181,13 @@ function draw() {
     if (direction === "left") headX -= box;
     if (direction === "right") headX += box;
 
+    let newHead = { x: headX, y: headY };
+
+    // Collision check (met body behalve laatste segment)
     if (
         headX < 0 || headY < 0 ||
         headX >= canvasSize || headY >= canvasSize ||
-        snake.some(segment => segment.x === headX && segment.y === headY)
+        snake.slice(0, -1).some(segment => segment.x === headX && segment.y === headY)
     ) {
         gameOver = true;
 
@@ -197,8 +203,6 @@ function draw() {
 
         return;
     }
-
-    let newHead = {x: headX, y: headY};
 
     if (headX === food.x && headY === food.y) {
         score++;
