@@ -1,48 +1,173 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VXN Solutions - Coming Soon</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            font-family: Arial, sans-serif;
-            color: white;
-            text-align: center;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VXN Solutions - Snake Game</title>
 
-        .container {
-            animation: fadeIn 1.5s ease-in-out;
-        }
+<style>
+    body {
+        margin: 0;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        font-family: Arial, sans-serif;
+        color: white;
+        text-align: center;
+    }
 
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-        }
+    h1 {
+        margin-bottom: 5px;
+        letter-spacing: 2px;
+    }
 
-        p {
-            font-size: 1.2rem;
-            opacity: 0.8;
-        }
+    #score {
+        margin-bottom: 10px;
+        font-size: 18px;
+        opacity: 0.8;
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+    canvas {
+        background: #0b1220;
+        border: 2px solid #334155;
+        border-radius: 10px;
+        max-width: 90vw;
+        max-height: 60vh;
+    }
+
+    .controls {
+        margin-top: 15px;
+        display: grid;
+        grid-template-columns: 60px 60px 60px;
+        grid-template-rows: 60px 60px;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    button {
+        background: #1e293b;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    button:active {
+        background: #334155;
+    }
+
+    .empty {
+        visibility: hidden;
+    }
+
+    @media (min-width: 768px) {
+        .controls {
+            display: none; /* verberg knoppen op desktop */
         }
-    </style>
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>VXN Solutions</h1>
-        <p>Coming Soon</p>
-    </div>
+
+<h1>VXN Solutions</h1>
+<div id="score">Score: 0</div>
+<canvas id="game" width="300" height="300"></canvas>
+
+<div class="controls">
+    <div class="empty"></div>
+    <button onclick="setDirection('up')">⬆️</button>
+    <div class="empty"></div>
+    <button onclick="setDirection('left')">⬅️</button>
+    <button onclick="setDirection('down')">⬇️</button>
+    <button onclick="setDirection('right')">➡️</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const box = 15;
+const canvasSize = 300;
+let snake = [{x: 150, y: 150}];
+let direction = null;
+let food = randomFood();
+let score = 0;
+
+function randomFood() {
+    return {
+        x: Math.floor(Math.random() * (canvasSize / box)) * box,
+        y: Math.floor(Math.random() * (canvasSize / box)) * box
+    };
+}
+
+document.addEventListener("keydown", e => {
+    if (e.key === "ArrowUp" && direction !== "down") direction = "up";
+    if (e.key === "ArrowDown" && direction !== "up") direction = "down";
+    if (e.key === "ArrowLeft" && direction !== "right") direction = "left";
+    if (e.key === "ArrowRight" && direction !== "left") direction = "right";
+});
+
+function setDirection(dir) {
+    if (dir === "up" && direction !== "down") direction = "up";
+    if (dir === "down" && direction !== "up") direction = "down";
+    if (dir === "left" && direction !== "right") direction = "left";
+    if (dir === "right" && direction !== "left") direction = "right";
+}
+
+function draw() {
+    ctx.fillStyle = "#0b1220";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Snake
+    ctx.fillStyle = "#22c55e";
+    snake.forEach(segment => {
+        ctx.fillRect(segment.x, segment.y, box, box);
+    });
+
+    // Food
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(food.x, food.y, box, box);
+
+    let headX = snake[0].x;
+    let headY = snake[0].y;
+
+    if (direction === "up") headY -= box;
+    if (direction === "down") headY += box;
+    if (direction === "left") headX -= box;
+    if (direction === "right") headX += box;
+
+    // Game over
+    if (
+        headX < 0 || headY < 0 ||
+        headX >= canvasSize || headY >= canvasSize ||
+        snake.some(segment => segment.x === headX && segment.y === headY)
+    ) {
+        snake = [{x: 150, y: 150}];
+        direction = null;
+        score = 0;
+        document.getElementById("score").innerText = "Score: 0";
+        return;
+    }
+
+    let newHead = {x: headX, y: headY};
+
+    if (headX === food.x && headY === food.y) {
+        score++;
+        document.getElementById("score").innerText = "Score: " + score;
+        food = randomFood();
+    } else {
+        snake.pop();
+    }
+
+    snake.unshift(newHead);
+}
+
+setInterval(draw, 100);
+</script>
+
 </body>
 </html>
